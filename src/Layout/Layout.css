@@ -1,0 +1,18 @@
+.w-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+
+    background-image: linear-gradient(to right top, #d1bebc, #d2c0c1, #c5b0ba, #b2a3b6, #9798b2, #768faa);
+}
+
+.w-layout__bar {
+    height: 64px;
+}
+
+.w-layout__content {
+    padding-bottom: 20px;
+    overflow-y: auto;
+}
