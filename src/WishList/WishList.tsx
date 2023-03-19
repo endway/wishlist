@@ -1,10 +1,11 @@
 import React, {useCallback} from "react";
-import firebase from "firebase";
-import {List, Paper, Typography} from "@material-ui/core";
+import { ref, set } from "firebase/database";
+import { List, Paper, Typography } from "@material-ui/core";
 
-import {Wish} from "./interfaces";
-import {WishItem} from "./WishItem";
-import {useStyles} from "../StylesHook";
+import { Wish } from "./interfaces";
+import { WishItem } from "./WishItem";
+import { useStyles } from "../StylesHook";
+import { database } from "../firebase";
 
 interface OwnProps {
   collection: Record<string, Omit<Wish, "id">>;
@@ -30,10 +31,12 @@ const makeArrayFromCollection = (collection: Record<string, Omit<Wish, "id">>) =
 };
 
 export const WishList: React.FunctionComponent<OwnProps> = ({collection}) => {
-  const {title} = useStyles();
+  const { title } = useStyles();
   const list = collection ? makeArrayFromCollection(collection) : [];
   const toggleChecked = useCallback((id: string, checked: boolean) => {
-    firebase.database().ref("list").child(id).child("checked").set(checked);
+      const checkedRef = ref(database, `list/${id}/checked`);
+
+      set(checkedRef, checked).catch(console.error);
   }, []);
 
   if (!list?.length) {

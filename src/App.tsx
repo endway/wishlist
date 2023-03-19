@@ -1,26 +1,16 @@
-import React from 'react';
-import firebase from 'firebase/app';
-import 'firebase/database';
-import {FirebaseDatabaseNode, FirebaseDatabaseProvider} from '@react-firebase/database';
-import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
-import {colors, ThemeProvider} from "@material-ui/core";
+import React, {useEffect, useState} from 'react';
+import { createTheme } from '@material-ui/core/styles';
+import { colors, ThemeProvider } from "@material-ui/core";
+import { ref, onValue } from "firebase/database";
+
+import { database } from "./firebase";
+import { Layout } from "./Layout/Layout";
+import { WishList } from "./WishList/WishList";
 
 import './App.css';
-import {Layout} from "./Layout/Layout";
-import {WishList} from "./WishList/WishList";
+import {Wish} from "./WishList/interfaces";
 
-const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
-};
-
-const theme = createMuiTheme({
+const theme = createTheme({
   palette: {
     primary: {
       main: '#000000',
@@ -38,17 +28,21 @@ const theme = createMuiTheme({
 });
 
 function App() {
+  const [list, setList] = useState<Record<string, Wish>>({});
+
+  useEffect(() => {
+    const elementsRef = ref(database, "list");
+
+    return onValue(elementsRef, (snapshot) => {
+      setList(snapshot.val());
+    });
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
-      <FirebaseDatabaseProvider firebase={firebase} {...firebaseConfig}>
-        <Layout>
-          <FirebaseDatabaseNode path="list">
-            {(listRef) => (
-              <WishList collection={listRef.value} />
-            )}
-          </FirebaseDatabaseNode>
-        </Layout>
-      </FirebaseDatabaseProvider>
+      <Layout>
+        <WishList collection={list} />
+      </Layout>
     </ThemeProvider>
   );
 }
