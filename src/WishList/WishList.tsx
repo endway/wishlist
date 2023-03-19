@@ -17,6 +17,10 @@ const makeArrayFromCollection = (collection: Record<string, Omit<Wish, "id">>) =
   Object.keys(collection).forEach((id) => {
     const element = collection[id];
 
+    if (element.hide) {
+      return;
+    }
+
     if (!listsMap.has(element.for)) {
       listsMap.set(element.for, []);
     }
