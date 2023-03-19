@@ -24,16 +24,16 @@ export const WishItem: React.FunctionComponent<OwnProps> = ({item, toggleWish}) 
         href={item.url}
         target="_blank"
       >
-        Открыть
+          Відкрити
       </Button>
 
       {(item.checked ? (
         <Button color="primary" onClick={() => toggleWish(false)}>
-          Вернуть
+          Повернути
         </Button>
       ) : (
         <Button color="primary" onClick={() => toggleWish(true)}>
-          Вычеркнуть
+          Викреслити
         </Button>
       ))}
     </ListItemSecondaryAction>
