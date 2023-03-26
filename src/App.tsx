@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { createTheme } from '@material-ui/core/styles';
 import { colors, ThemeProvider } from "@material-ui/core";
 import { ref, onValue } from "firebase/database";
@@ -6,9 +6,10 @@ import { ref, onValue } from "firebase/database";
 import { database } from "./firebase";
 import { Layout } from "./Layout/Layout";
 import { WishList } from "./WishList/WishList";
+import { Wish } from "./WishList/interfaces";
 
 import './App.css';
-import {Wish} from "./WishList/interfaces";
+import {useMigrator} from "./database/migrator";
 
 const theme = createTheme({
   palette: {
@@ -29,19 +30,26 @@ const theme = createTheme({
 
 function App() {
   const [list, setList] = useState<Record<string, Wish>>({});
+  const [reservations, setReservations] = useState<Record<string, boolean>>({});
 
+  useMigrator();
   useEffect(() => {
     const elementsRef = ref(database, "list");
+    const reservationsRef = ref(database, "reservations");
 
-    return onValue(elementsRef, (snapshot) => {
-      setList(snapshot.val());
-    });
+    const listOff = onValue(elementsRef, (snapshot) => setList(snapshot.val()));
+    const reservationsOff = onValue(reservationsRef, (snapshot) => setReservations(snapshot.val()));
+
+    return () => {
+      listOff();
+      reservationsOff();
+    };
   }, []);
 
   return (
     <ThemeProvider theme={theme}>
       <Layout>
-        <WishList collection={list} />
+        <WishList collection={list} checked={reservations} />
       </Layout>
     </ThemeProvider>
   );

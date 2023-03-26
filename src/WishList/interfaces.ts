@@ -5,5 +5,4 @@ export interface Wish {
   hide?: boolean;
   label: string;
   price: number;
-  checked: boolean;
 }

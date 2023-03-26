@@ -9,6 +9,7 @@ import { database } from "../firebase";
 
 interface OwnProps {
   collection: Record<string, Omit<Wish, "id">>;
+  checked: Record<string, boolean>;
 }
 
 const makeArrayFromCollection = (collection: Record<string, Omit<Wish, "id">>) => {
@@ -34,11 +35,11 @@ const makeArrayFromCollection = (collection: Record<string, Omit<Wish, "id">>) =
   }));
 };
 
-export const WishList: React.FunctionComponent<OwnProps> = ({collection}) => {
+export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked}) => {
   const { title } = useStyles();
   const list = collection ? makeArrayFromCollection(collection) : [];
   const toggleChecked = useCallback((id: string, checked: boolean) => {
-      const checkedRef = ref(database, `list/${id}/checked`);
+      const checkedRef = ref(database, `reservations/${id}`);
 
       set(checkedRef, checked).catch(console.error);
   }, []);
@@ -59,6 +60,7 @@ export const WishList: React.FunctionComponent<OwnProps> = ({collection}) => {
               <WishItem
                 key={wish.id}
                 item={wish}
+                checked={checked[wish.id]}
                 toggleWish={(checked: boolean) => toggleChecked(wish.id, checked)}
               />
             ))}
