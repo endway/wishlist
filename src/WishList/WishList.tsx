@@ -6,6 +6,7 @@ import { Wish } from "./interfaces";
 import { WishItem } from "./WishItem";
 import { useStyles } from "../StylesHook";
 import { database } from "../firebase";
+import { WishDialog } from "./WishDialog";
 
 interface OwnProps {
   collection: Record<string, Omit<Wish, "id">>;
@@ -38,11 +39,6 @@ const makeArrayFromCollection = (collection: Record<string, Omit<Wish, "id">>) =
 export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked}) => {
   const { title } = useStyles();
   const list = collection ? makeArrayFromCollection(collection) : [];
-  const toggleChecked = useCallback((id: string, checked: boolean) => {
-      const checkedRef = ref(database, `reservations/${id}`);
-
-      set(checkedRef, checked).catch(console.error);
-  }, []);
 
   if (!list?.length) {
     return null;
@@ -52,7 +48,10 @@ export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked
     <>
     {list.map((item) => (
       <React.Fragment key={item.label}>
-        <Typography variant="h6" className={title}>{item.label}</Typography>
+        <Typography variant="h6" className={title}>
+          {item.label}
+          <WishDialog category={item.label} />
+        </Typography>
 
         <Paper>
           <List>
@@ -61,7 +60,6 @@ export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked
                 key={wish.id}
                 item={wish}
                 checked={checked[wish.id]}
-                toggleWish={(checked: boolean) => toggleChecked(wish.id, checked)}
               />
             ))}
           </List>
