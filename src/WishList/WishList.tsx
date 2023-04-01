@@ -1,11 +1,9 @@
-import React, {useCallback} from "react";
-import { ref, set } from "firebase/database";
+import React from "react";
 import { List, Paper, Typography } from "@material-ui/core";
 
 import { Wish } from "./interfaces";
 import { WishItem } from "./WishItem";
 import { useStyles } from "../StylesHook";
-import { database } from "../firebase";
 import { WishDialog } from "./WishDialog";
 
 interface OwnProps {

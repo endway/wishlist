@@ -3,7 +3,8 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogTitle, IconButton,
+    DialogTitle,
+    IconButton,
     TextField
 } from "@material-ui/core";
 import React, { useState } from "react";
