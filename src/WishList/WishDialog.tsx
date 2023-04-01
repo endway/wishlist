@@ -48,6 +48,7 @@ export const WishDialog: React.FunctionComponent<OwnProps> = ({ category }) => {
             price: price ?? 0,
         };
         await push(listRef, wish);
+        resetState();
         closeDialog();
     };
 
