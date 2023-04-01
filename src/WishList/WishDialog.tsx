@@ -24,24 +24,31 @@ export const WishDialog: React.FunctionComponent<OwnProps> = ({ category }) => {
     const [open, setOpen] = useState(false);
     const [label, setLabel] = useState("");
     const [url, setUrl] = useState("");
-    const [price, setPrice] = useState(0);
+    const [price, setPrice] = useState<number | null>(0);
 
     const openDialog = () => {
         setOpen(true);
     };
 
-    const handleClose = () => {
+    const closeDialog = () => {
         setOpen(false);
+    };
+
+    const resetState = () => {
+        setLabel("");
+        setUrl("");
+        setPrice(0);
     };
 
     const save = async () => {
         const wish: Omit<Wish, "id"> = {
             url,
-            price,
             label,
             for: category,
+            price: price ?? 0,
         };
         await push(listRef, wish);
+        closeDialog();
     };
 
     if (![Role.admin, Role.owner].includes(role)) {
@@ -54,7 +61,7 @@ export const WishDialog: React.FunctionComponent<OwnProps> = ({ category }) => {
                 <AddCircle color={"primary"} />
             </IconButton>
 
-            <Dialog open={open} onClose={handleClose}>
+            <Dialog open={open} onClose={closeDialog}>
                 <DialogTitle>Додати побажання</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -88,11 +95,11 @@ export const WishDialog: React.FunctionComponent<OwnProps> = ({ category }) => {
                         fullWidth
                         variant="standard"
                         value={price}
-                        onChange={(ev) => setPrice(Number(ev.target.value))}
+                        onChange={(ev) => setPrice(ev.target.value ? Number(ev.target.value) : null)}
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose}>Закрити</Button>
+                    <Button onClick={closeDialog}>Закрити</Button>
                     <Button onClick={save}>Додати</Button>
                 </DialogActions>
             </Dialog>
