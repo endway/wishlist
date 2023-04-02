@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import { AppBar, Button, Grid, Paper, Toolbar, Typography } from "@material-ui/core";
+import {AppBar, Button, Grid, Hidden, Paper, Toolbar, Typography} from "@material-ui/core";
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import "./Layout.css";
 import { auth } from "../firebase";
@@ -33,7 +33,12 @@ export const Layout: React.FunctionComponent = ({children}) => {
         <Paper elevation={0} className="w-layout">
             <AppBar className="w-layout__bar" color="primary" position="sticky">
                 <Toolbar>
-                    <Typography variant="h5" color="inherit" style={{flexGrow: 1}}>Вішліст Карпових</Typography>
+                    <Hidden xsDown>
+                        <Typography variant="h5" color="inherit" style={{flexGrow: 1}}>Вішліст Карпових</Typography>
+                    </Hidden>
+                    <Hidden smUp>
+                        <Typography variant="h6" color="inherit" style={{flexGrow: 1}}>Вішліст Карпових</Typography>
+                    </Hidden>
                     {user ?? <Button onClick={openLogin} variant="contained">Авторизуватись</Button>}
                 </Toolbar>
             </AppBar>
