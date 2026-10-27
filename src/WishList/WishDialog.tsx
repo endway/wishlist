@@ -4,107 +4,144 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    IconButton,
+    MenuItem,
     TextField
 } from "@material-ui/core";
-import React, { useState } from "react";
-import { AddCircle } from "@material-ui/icons";
-import { push, ref } from "firebase/database";
-import { database } from "../firebase";
+import React, { useEffect, useState } from "react";
 import { Wish } from "./interfaces";
-import { Role, useSession } from "../SessionHook";
+import { createWish, updateWish } from "../database/actions";
 
 interface OwnProps {
-    category: string;
+    open: boolean;
+    onClose: () => void;
+    /** Existing list names the wish can be moved to. */
+    categories: string[];
+    /** List that is preselected when creating a new wish. */
+    category?: string;
+    /** When provided, the dialog edits this wish instead of creating a new one. */
+    wish?: Wish;
 }
 
-const listRef = ref(database, "list");
+const NEW_CATEGORY = "__new__";
 
-export const WishDialog: React.FunctionComponent<OwnProps> = ({ category }) => {
-    const { role } = useSession();
-    const [open, setOpen] = useState(false);
+export const WishDialog: React.FunctionComponent<OwnProps> = ({ open, onClose, categories, category, wish }) => {
+    const isEdit = Boolean(wish);
     const [label, setLabel] = useState("");
     const [url, setUrl] = useState("");
     const [price, setPrice] = useState<number | null>(0);
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [newCategory, setNewCategory] = useState("");
 
-    const openDialog = () => {
-        setOpen(true);
-    };
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
 
-    const closeDialog = () => {
-        setOpen(false);
-    };
+        setLabel(wish?.label ?? "");
+        setUrl(wish?.url ?? "");
+        setPrice(wish?.price ?? 0);
+        setNewCategory("");
 
-    const resetState = () => {
-        setLabel("");
-        setUrl("");
-        setPrice(0);
-    };
+        const initial = wish?.for ?? category ?? categories[0] ?? "";
+        if (initial && !categories.includes(initial)) {
+            setSelectedCategory(NEW_CATEGORY);
+            setNewCategory(initial);
+        } else {
+            setSelectedCategory(initial || NEW_CATEGORY);
+        }
+    }, [open, wish, category, categories]);
+
+    const resolvedCategory = selectedCategory === NEW_CATEGORY ? newCategory.trim() : selectedCategory;
+    const canSave = label.trim().length > 0 && resolvedCategory.length > 0;
 
     const save = async () => {
-        const wish: Omit<Wish, "id"> = {
+        const data: Omit<Wish, "id" | "hide"> = {
             url,
-            label,
-            for: category,
+            label: label.trim(),
+            for: resolvedCategory,
             price: price ?? 0,
         };
-        await push(listRef, wish);
-        resetState();
-        closeDialog();
+
+        if (wish) {
+            await updateWish(wish.id, data);
+        } else {
+            await createWish(data);
+        }
+
+        onClose();
     };
 
-    if (![Role.admin, Role.owner].includes(role)) {
-        return null;
-    }
-
     return (
-        <>
-            <IconButton style={{marginLeft: 8}} onClick={openDialog}>
-                <AddCircle color={"primary"} />
-            </IconButton>
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+            <DialogTitle>{isEdit ? "Редагувати побажання" : "Додати побажання"}</DialogTitle>
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="title"
+                    label="Назва"
+                    type="text"
+                    fullWidth
+                    variant="standard"
+                    value={label}
+                    onChange={(ev) => setLabel(ev.target.value)}
+                />
 
-            <Dialog open={open} onClose={closeDialog}>
-                <DialogTitle>Додати побажання</DialogTitle>
-                <DialogContent>
+                <TextField
+                    margin="dense"
+                    id="url"
+                    label="Посилання"
+                    type="text"
+                    fullWidth
+                    variant="standard"
+                    value={url}
+                    onChange={(ev) => setUrl(ev.target.value)}
+                />
+
+                <TextField
+                    margin="dense"
+                    id="price"
+                    label="Ціна"
+                    type="number"
+                    fullWidth
+                    variant="standard"
+                    value={price ?? ""}
+                    onChange={(ev) => setPrice(ev.target.value ? Number(ev.target.value) : null)}
+                />
+
+                <TextField
+                    select
+                    margin="dense"
+                    id="category"
+                    label="Список"
+                    fullWidth
+                    variant="standard"
+                    value={selectedCategory}
+                    onChange={(ev) => setSelectedCategory(ev.target.value)}
+                >
+                    {categories.map((name) => (
+                        <MenuItem key={name} value={name}>{name}</MenuItem>
+                    ))}
+                    <MenuItem value={NEW_CATEGORY}>Новий список…</MenuItem>
+                </TextField>
+
+                {selectedCategory === NEW_CATEGORY && (
                     <TextField
-                        autoFocus
                         margin="dense"
-                        id="title"
-                        label="Назва"
+                        id="new-category"
+                        label="Назва нового списку"
                         type="text"
                         fullWidth
                         variant="standard"
-                        value={label}
-                        onChange={(ev) => setLabel(ev.target.value)}
+                        value={newCategory}
+                        onChange={(ev) => setNewCategory(ev.target.value)}
                     />
-
-                    <TextField
-                        margin="dense"
-                        id="url"
-                        label="Посилання"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={url}
-                        onChange={(ev) => setUrl(ev.target.value)}
-                    />
-
-                    <TextField
-                        margin="dense"
-                        id="price"
-                        label="Ціна"
-                        type="number"
-                        fullWidth
-                        variant="standard"
-                        value={price}
-                        onChange={(ev) => setPrice(ev.target.value ? Number(ev.target.value) : null)}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeDialog}>Закрити</Button>
-                    <Button onClick={save}>Додати</Button>
-                </DialogActions>
-            </Dialog>
-        </>
+                )}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Закрити</Button>
+                <Button onClick={save} disabled={!canSave}>{isEdit ? "Зберегти" : "Додати"}</Button>
+            </DialogActions>
+        </Dialog>
     );
 };

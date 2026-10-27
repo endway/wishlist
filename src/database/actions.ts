@@ -14,6 +14,12 @@ export const createWish = (wish: Omit<Wish, "id">) => {
     return push(listRef, wish);
 };
 
+export const updateWish = (id: string, wish: Omit<Wish, "id" | "hide">) => {
+    const wishRef = ref(database, `list/${id}`);
+
+    return update(wishRef, wish);
+};
+
 export const toggleChecked = (id: string, checked: boolean) => {
     const checkedRef = ref(database, `reservations/${id}`);
 

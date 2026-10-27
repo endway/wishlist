@@ -4,15 +4,17 @@ import { Wish } from "./interfaces";
 
 import "./WishItem.css";
 import { WishHide } from "./WishHide";
+import { WishEdit } from "./WishEdit";
 import { WishReserve } from "./WishReserve";
 import {WishMenuMobile} from "./WishMenuMobile";
 
 interface OwnProps {
     item: Wish;
+    categories: string[];
     checked: boolean;
 }
 
-export const WishItem: React.FunctionComponent<OwnProps> = ({item, checked }) => (
+export const WishItem: React.FunctionComponent<OwnProps> = ({item, categories, checked }) => (
     <ListItem className={(checked ? "w-wish-item--checked" : "")} style={{minHeight: "56px"}}>
         <Hidden xsDown>
             <ListItemText
@@ -31,6 +33,7 @@ export const WishItem: React.FunctionComponent<OwnProps> = ({item, checked }) =>
                 </Button>
 
                 <WishReserve id={item.id} checked={checked}/>
+                <WishEdit item={item} categories={categories}/>
                 <WishHide id={item.id}/>
             </ListItemSecondaryAction>
         </Hidden>
@@ -42,7 +45,7 @@ export const WishItem: React.FunctionComponent<OwnProps> = ({item, checked }) =>
                 primaryTypographyProps={{noWrap: false}}
                 secondary={`${item.price} грн`}
             />
-            <WishMenuMobile id={item.id} url={item.url} checked={checked} />
+            <WishMenuMobile item={item} categories={categories} checked={checked} />
         </Hidden>
     </ListItem>
 );

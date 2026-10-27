@@ -4,6 +4,7 @@ export enum Action {
     mark = "mark",
     hide = "hide",
     create = "create",
+    edit = "edit",
 }
 
 interface CanFn {
@@ -18,6 +19,7 @@ export const useACL = (): { can: CanFn } => {
             switch (action) {
                 case Action.hide:
                 case Action.create:
+                case Action.edit:
                     return [Role.admin, Role.owner].includes(role);
 
                 case Action.mark:

@@ -4,7 +4,7 @@ import { List, Paper, Typography } from "@material-ui/core";
 import { Wish } from "./interfaces";
 import { WishItem } from "./WishItem";
 import { useStyles } from "../StylesHook";
-import { WishDialog } from "./WishDialog";
+import { WishCreate } from "./WishCreate";
 
 interface OwnProps {
   collection: Record<string, Omit<Wish, "id">>;
@@ -37,6 +37,7 @@ const makeArrayFromCollection = (collection: Record<string, Omit<Wish, "id">>) =
 export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked}) => {
   const { title } = useStyles();
   const list = collection ? makeArrayFromCollection(collection) : [];
+  const categories = list.map((item) => item.label);
 
   if (!list?.length) {
     return null;
@@ -48,7 +49,7 @@ export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked
       <React.Fragment key={item.label}>
         <Typography variant="h6" className={title}>
           {item.label}
-          <WishDialog category={item.label} />
+          <WishCreate category={item.label} categories={categories} />
         </Typography>
 
         <Paper>
@@ -57,6 +58,7 @@ export const WishList: React.FunctionComponent<OwnProps> = ({collection, checked
               <WishItem
                 key={wish.id}
                 item={wish}
+                categories={categories}
                 checked={checked[wish.id]}
               />
             ))}
