@@ -1,0 +1,70 @@
+# Reusable workflow: builds the app with the Firebase config of a GitHub
+# environment and deploys it to a Firebase Hosting channel.
+#
+# Per-environment configuration (Settings → Environments → <name>):
+#   secrets.FIREBASE_SERVICE_ACCOUNT        service account JSON with the "Firebase Hosting Admin" role
+#   vars.FIREBASE_PROJECT_ID                target Firebase project
+#   vars.REACT_APP_FIREBASE_*               web app config baked into the bundle
+name: Firebase Hosting deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment to take config and secrets from
+        type: string
+        required: true
+      channel:
+        description: Firebase Hosting channel ("live" for production)
+        type: string
+        default: live
+      expires:
+        description: Preview channel TTL (ignored for "live")
+        type: string
+        default: 7d
+    outputs:
+      url:
+        description: Deployed URL
+        value: ${{ jobs.deploy.outputs.url }}
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deploy.outputs.details_url || steps.deploy.outputs.urls }}
+    outputs:
+      url: ${{ steps.deploy.outputs.details_url || steps.deploy.outputs.urls }}
+    env:
+      CI: true
+      REACT_APP_FIREBASE_API_KEY: ${{ vars.REACT_APP_FIREBASE_API_KEY }}
+      REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ vars.REACT_APP_FIREBASE_AUTH_DOMAIN }}
+      REACT_APP_FIREBASE_DATABASE_URL: ${{ vars.REACT_APP_FIREBASE_DATABASE_URL }}
+      REACT_APP_FIREBASE_PROJECT_ID: ${{ vars.REACT_APP_FIREBASE_PROJECT_ID || vars.FIREBASE_PROJECT_ID }}
+      REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ vars.REACT_APP_FIREBASE_STORAGE_BUCKET }}
+      REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+      REACT_APP_FIREBASE_APP_ID: ${{ vars.REACT_APP_FIREBASE_APP_ID }}
+      REACT_APP_FIREBASE_MEASUREMENT_ID: ${{ vars.REACT_APP_FIREBASE_MEASUREMENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy
+        id: deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          channelId: ${{ inputs.channel }}
+          expires: ${{ inputs.channel != 'live' && inputs.expires || '' }}

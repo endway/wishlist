@@ -1,0 +1,24 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never cancel a production deploy halfway; queue the next one instead
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/firebase-hosting.yml
+    with:
+      environment: production
+      channel: live
+    secrets: inherit

@@ -39,6 +39,33 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
+## CI/CD
+
+GitHub Actions workflows live in `.github/workflows`:
+
+| Workflow | Trigger | What it does |
+| --- | --- | --- |
+| `ci.yml` | every PR, push to `main` | `npm ci`, typecheck, tests, production build |
+| `deploy-preview.yml` | PRs from this repo (not forks) | deploys to a Firebase Hosting preview channel `pr-<number>` (expires in 7 days) and comments the URL on the PR |
+| `deploy-production.yml` | push to `main`, manual run | deploys to the Firebase Hosting `live` channel |
+| `firebase-hosting.yml` | called by the two above | shared build + deploy job |
+
+### One-time setup
+
+Create two GitHub environments (Settings → Environments): `preview` and `production`.
+Add protection rules (e.g. required reviewers) to `production` if deploys should be approved.
+In each environment set:
+
+- Secret `FIREBASE_SERVICE_ACCOUNT`: JSON key of a service account with the *Firebase Hosting Admin* role
+  (`firebase init hosting:github` can create one for you).
+- Variable `FIREBASE_PROJECT_ID`: target Firebase project.
+- Variables `REACT_APP_FIREBASE_API_KEY`, `REACT_APP_FIREBASE_AUTH_DOMAIN`, `REACT_APP_FIREBASE_DATABASE_URL`,
+  `REACT_APP_FIREBASE_PROJECT_ID`, `REACT_APP_FIREBASE_STORAGE_BUCKET`, `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`,
+  `REACT_APP_FIREBASE_APP_ID`, `REACT_APP_FIREBASE_MEASUREMENT_ID`: the web app config from the Firebase console.
+
+Both environments can point at the same project (previews then share the production database), or `preview`
+can point at a separate staging project.
+
 ## Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).

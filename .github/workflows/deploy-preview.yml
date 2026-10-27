@@ -1,0 +1,24 @@
+name: Deploy preview
+
+on:
+  pull_request:
+
+concurrency:
+  group: deploy-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    # Fork PRs have no access to secrets
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/firebase-hosting.yml
+    with:
+      environment: preview
+      channel: pr-${{ github.event.pull_request.number }}
+      expires: 7d
+    secrets: inherit
